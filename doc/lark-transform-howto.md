@@ -48,6 +48,9 @@ The sample files referenced in this document are
     tree and the abstract syntax tree (AST).  The pretty-printed 
     from of the AST looks like a list of fully parenthesized 
     arithmetic expressions. 
+- `sums_alt.lark`, `sums_alt_reshape.py`, and `main_alt.py`repeat 
+  this process with an alternative version of the grammar (but with 
+  the same abstract syntax definition)
 
 ## Sketch of the example
 
@@ -385,6 +388,110 @@ list of fully parenthesized expressions:
 ```
 [(5 + 3), ((2 - 7) + 5)]
 ```
+
+## Alternative Lark grammar constructs
+
+The Lark parser generator supports a number of extensions and 
+conveniences that can change the concrete syntax tree.  We have used 
+a few of them in ``sums_alt.lark`. 
+
+### Inlining non-terminals
+
+In the first version of the grammer, we used a non-terminal `number` 
+which just matched a single terminal symbol (token) `NUMBER`.  In 
+`sums_alt.lark` we rename this to `_number`.  The leading underscore 
+indicates that we do _not_ want nodes in the concrete syntax tree 
+for `number`.  Rather, we want the children of `_number` to be 
+"inlined" where it appears on the right-hand side of a grammar rule. 
+Thus, where our revised grammar says 
+``` 
+!sum:  sum "+" _number
+    | sum "-" _number
+    | _number
+```
+we will not find `_number` nodes in the concrete syntax for `sum`, 
+but will instead find nodes for the token `NUMBER`.  
+
+### Preserving literal tokens
+
+We have also prepended "!" to the definition of `sum`.  This 
+preserves the literal tokens for "+" and "-".  With this change, we 
+no longer need to rename concrete syntax tree nodes to "plus" and 
+"minus" to tell them apart.  With this change and the prior change 
+to "_number", our transformation rule in `sums_alt.lark` will look 
+like this: 
+
+```python
+    def sum(self, children):
+        """The "!" in the grammar preserves the "+" and "-".  Since we are no longer
+        relabeling the nodes to "plus" and "minus", we must look at the length of
+        children to distinguish base case from recursive case.
+        """
+        log.debug(f"Processing sum with {children}")
+        if len(children) == 1:
+            return children[0]
+        else:
+            assert len(children) == 3, "Recursive cases of 'sum' have three parts including operation"
+            left, op, right = children
+            # The literal string will be represented by a Token object
+            if op.value == "+":
+                return sums_ast.Plus(left, right)
+            elif op.value == "-":
+                return sums_ast.Minus(left, right)
+            else:
+                raise ValueError(f"Bad token {op}")
+```
+
+### Sequences with "*" or "+"
+
+We initially used a left-recursive rule to match a sequence of sums 
+separated by semicolons.  
+
+```
+seq: seq sum ";" -> seq_more
+    | sum ";"    -> seq_one
+```
+
+This left-recursive scheme is an idiom of 
+bottom-up (LR) parsing, and is how you would match a sequence with 
+many other LALR(1) parser generators including Yacc or Bison for 
+C/C++ or CUP for Java.  It was also straightforward to convert it 
+into a list when the concrete syntax nodes were labeled `seq_more` 
+and `seq_one`.  
+
+As an alternative, Lark supports using Kleene-star (`*`) for a 
+sequence of zero or more items or `+` for a sequence of one or more. 
+We can rewrite the rule for `seq` this way: 
+
+```
+seq: (sum ";")+
+```
+
+If we use this approach, the children of the `seq` node in the 
+concrete syntax will be a list of nodes returned by our 
+trasformation of `sum` nodes.  (Nodes for `";"` will not be included 
+because we did not prepend `seq` by `!`.)  Our transformation method 
+for `seq` will become: 
+
+```python
+    def seq(self, children):
+        """Since we used the extended syntax for + or *, the children
+        will be a list, and the length of the list will be the number of
+        matched components.
+        """
+        log.debug(f"Processing sequence with {children}")
+        seq = sums_ast.Seq()
+        for child in children:
+            seq.append(child)
+        return seq
+```
+
+The revised grammar is illustrated in `sums_alt.lark`, with a 
+corresponding revised transformer in `sums_alt_reshape.py`.  
+`main_alt.py` applies the revised grammar and transformer.  Note 
+that we did _not_ change the definition of the abstract syntax tree. 
+This is important:  You want a well-designed abstract syntax tree 
+that is not overly coupled to details of concrete syntax. 
 
 ## Parting advice: Approach AST-building incrementally
 
