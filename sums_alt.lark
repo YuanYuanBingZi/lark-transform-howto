@@ -1,0 +1,33 @@
+//# Alternative grammar for sequence of sums.  In this one we use "+"
+//# for a sequence of zero or more sums and we use rule annotations to control
+//# inlining and eliding.
+//#
+
+?start: seq  // The ? means "don't actually build a node for 'start'"
+
+// Sequence of one or more sums, expressed with left recursion.
+// Use "*" (called "Kleene-star) to instead accept zero or more.
+seq: (sum ";")+
+
+// Instead of labeling the productions, here we use "!" to
+// preserve the literals.  See definition of _number below
+// to see inlining of the non-terminal symbol, i.e., "_number"
+// nodes will not appear in the concrete syntax tree but
+// instead "NUMBER" nodes will. This would also work if "number"
+// had a more complex definition.
+!sum:  sum "+" _number
+    | sum "-" _number
+    | _number
+
+// The real BNF portion of the grammar is all above.  What follows
+// is the lexical structure, which is matched in a completely different
+// way.  We'll begin by importing a standard Lark pattern for ignoring whitespace
+%import common.WS
+%ignore WS
+
+// The leading underscore says that "number" nodes should be inlined.
+_number: NUMBER
+NUMBER: /[0-9]+/
+
+
+
