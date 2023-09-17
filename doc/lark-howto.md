@@ -1,6 +1,6 @@
 # Parsing and abstract syntax with Lark
 
-Lark is a very nice parser generator with wholly inadequate 
+Lark is a very nice parser generator with inadequate 
 documentation. I've spent far too many hours trying to answer 
 questions with the provided Lark documentation, including recipes 
 with insufficient explanation and reference with missing details. 
@@ -11,6 +11,43 @@ It is focused on one particular use case:
   code using an LALR(1) parser.
 - You want to transform the concrete syntax tree into an abstract 
   syntax tree.
+
+## Getting started
+
+This example uses Lark 1.1.7 installed in a virtual environment (venv).
+To get started, assuming you are using Linux or MacOS, use these 
+commands in the project directory. 
+```shell
+python3 -m venv venv
+source env/bin/activate
+pip install -r requirements.txt
+```
+
+The sample files referenced in this document are
+- `sums.lark`: A Lark grammar for a semicolon-separated sequence
+   of simple arithmetic expressions (sums).  This file includes
+   the extended BNF grammar, lexical rules for skipping whitespace
+   imported from Lark libraries, and a lexical rule for recognizing
+   integer literals. 
+- `example_sums.txt`: Example input conforming to the grammar in 
+  `sums.lark`. 
+- `sums_ast.py`:  Python classes for the abstract syntax tree 
+  structure that we wish to obtain by parsing `examples_sums.txt` 
+  with `sums.lark`.
+- `sums_reshape.py`: A Lark _Transformer_ class that can reshape the 
+  concrete syntax tree produced by a Lark parser based on
+  `sums.lark` into the abstract syntax described by `sums_ast.py`.
+- `main.py`:  Steps in the overall process.
+  - builds a Lark parser from `sums.lark`
+  - applies that parser to `example_sums.txt` to produce a concrete 
+    syntax tree
+  - applies the `Transformer` in `sums_reshape.py` to convert the 
+    concrete syntax tree into an abstract syntax tree based on 
+    `sums_ast.py`.
+  - prints a "pretty-printed" version of both the concrete syntax 
+    tree and the abstract syntax tree (AST).  The pretty-printed 
+    from of the AST looks like a list of fully parenthesized 
+    arithmetic expressions. 
 
 ## Sketch of the example
 
@@ -25,29 +62,47 @@ Such a sequence can be described by a context-free grammar.  We want
 `7 - 2 - 1` to be grouped as `(7 - 2) - 1`, so we will write the 
 recursive grammar for sums in a left-recursive style: 
 
-```bnf
+```
 sum ::= number;
-sum ::= sum '+' number;
-sum ::= sum '-' number;
+sum ::= sum "+" number;
+sum ::= sum "-" number;
 ```
 
-(This is not Lark syntax, which we will get to shortly.)
+Lark grammar syntax uses `:` in place of `::=`, and uses indentation 
+and line breaks much as Python does to group parts of a production,
+so in Lark syntax this could be 
 
-Sequences will also be expressed with left recursion.  For the 
-moment we'll require sequences to include at least one sum: 
+```
+sum: number
+    | sum "+" number
+    | sum "-" number
+
+```
+In addition to describing how the non-terminal `sum` can be parsed, 
+this rule would describe the possible shapes of a concrete syntax 
+tree produced by a Lark parser.  A `sum` node could have a single 
+child which is a `number` node, or it could have a left child which 
+is another `sum` node and a right child which is a `number` node.  
+The literal tokens `+` or `-` would be lost.  There is a way to 
+preserve the literal tokens in a Lark parser, but we will use a 
+different tactic below, relabeling some of the nodes.
+
+Sequences will also be expressed with left recursion. We'll require 
+sequences to include at least one sum: 
 
 ```bnf
-seq ::= sum ';'
-seq ::  seq sum ';'
+seq: seq sum ";" 
+    | sum ";"    
+
 ```
 
-We will initially use this left-recursive scheme for a sequence in 
-Lark.  Lark's extended BNF will also let us use Kleene star (`*`)
-to directly express a sequence, which we will also consider below. 
+Lark's extended BNF would also let us use Kleene star (`*`)
+to directly express a sequence, but the left-recursive rules will 
+suit our purpose here. 
 
 ## Designing the abstract syntax 
 
-Logically design of abstract syntax should precede design of the
+Ideally,  design of abstract syntax should precede design of the
 grammar.  In practice they are more often interleaved, but we should 
 try to make the AST as useful as possible for static analysis and 
 intermediate code generation, rather than fitting it closely to the 
