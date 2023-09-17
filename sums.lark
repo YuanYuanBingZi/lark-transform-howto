@@ -1,0 +1,32 @@
+//# Lark grammar for sums.  Note this is the "concrete syntax", which describes
+//# a tree (the "parse tree") but not the tree we want (the "abstract syntax tree").
+//#
+//# Also of note:  Lark documentation says you can use # for comments, but as of 2023-09
+//# it's a lie; you have to use //.   There are too many lies in the Lark documentation.
+//#
+
+?start: seq  // The ? means "don't actually build a node for 'start'"
+
+// Sequence of one or more sums, expressed with left recursion
+seq: seq sum ";" -> seq_more
+    | sum ";"    -> seq_one
+
+// In the following, we specify that the parse tree should have nodes
+// labeled 'plus' and 'minus' rather than 'sum'
+
+sum:  sum "+" number -> plus
+    | sum "-" number -> minus
+    | number
+
+// The real BNF portion of the grammar is all above.  What follows
+// is the lexical structure, which is matched in a completely different
+// way.  We'll begin by importing a standard Lark pattern for ignoring whitespace
+%import common.WS
+%ignore WS
+
+// Then we'll write a pattern for decimal integers
+number: NUMBER
+NUMBER: /[0-9]+/
+
+
+
