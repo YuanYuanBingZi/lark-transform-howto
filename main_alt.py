@@ -10,7 +10,7 @@ import sums_alt_reshape  # ... but reshaping depends on grammar as well as AST s
 def main():
     # Step 1:  Process the grammar to create a parser (and lexer)
     gram_file = open("sums_alt.lark", "r")
-    parser = lark.Lark(gram_file)
+    parser = lark.Lark(gram_file, parser="lalr")
 
     # Step 2: Use the parser (and lexer) to create a parse tree
     # (concrete syntax)
@@ -23,11 +23,16 @@ def main():
     # Step 3: Transform the concrete syntax tree into
     # an abstract tree, starting from the leaves and working
     # up.
-    # Warning:  Lousy exceptions because of the way Lark applies these.
-    transformer = sums_alt_reshape.SumsTransformer()
+   transformer = sums_alt_reshape.SumsTransformer()
     ast = transformer.transform(concrete)
     print(ast)
+    print(f"as {repr(ast)}")
 
+# Warning:  Lousy exceptions when you call 'transform'
+#   because of the way Lark applies these.
+#   'transform' looks for methods that match the node name, then
+#   calls them, so you will get an exception within the Lark code rather
+#   than an exception directly associated with your transformation method.
 
 
 # Press the green button in the gutter to run the script.

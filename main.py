@@ -11,7 +11,7 @@ import sums_reshape
 def main():
     # Step 1:  Process the grammar to create a parser (and lexer)
     gram_file = open("sums.lark", "r")
-    parser = lark.Lark(gram_file)
+    parser = lark.Lark(gram_file, parser="lalr")
 
     # Step 2: Use the parser (and lexer) to create a parse tree
     # (concrete syntax)
@@ -28,11 +28,8 @@ def main():
     transformer = sums_reshape.SumsTransformer()
     ast = transformer.transform(concrete)
     print(ast)
+    print(f"as {repr(ast)}")
 
-
-
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     main()
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
