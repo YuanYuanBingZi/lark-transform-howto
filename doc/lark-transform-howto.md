@@ -17,6 +17,7 @@ It is focused on one particular use case:
 This example uses Lark 1.1.7 installed in a virtual environment (venv).
 To get started, assuming you are using Linux or MacOS, use these 
 commands in the project directory. 
+
 ```shell
 python3 -m venv venv
 source env/bin/activate
@@ -24,6 +25,7 @@ pip install -r requirements.txt
 ```
 
 The sample files referenced in this document are
+
 - `sums.lark`: A Lark grammar for a semicolon-separated sequence
    of simple arithmetic expressions (sums).  This file includes
    the extended BNF grammar, lexical rules for skipping whitespace
@@ -357,6 +359,7 @@ into an abstract syntax tree, and then prints the abstract syntax tree.
 ```
 
 The input text
+
 ```
 5 +
 3 ;
@@ -487,7 +490,7 @@ for `seq` will become:
 ```
 
 The revised grammar is illustrated in `sums_alt.lark`, with a 
-corresponding revised transformer in `sums_alt_reshape.py`.  
+corresponding revised transformer in `sums_alt_reshape.py`.
 `main_alt.py` applies the revised grammar and transformer.  Note 
 that we did _not_ change the definition of the abstract syntax tree. 
 This is important:  You want a well-designed abstract syntax tree 
@@ -496,7 +499,7 @@ that is not overly coupled to details of concrete syntax.
 ## Parting advice: Approach AST-building incrementally
 
 Do not be tempted to write a whole programming language grammar, and 
-then a whole transformer to concrete syntax, in one or two steps.  
+then a whole transformer to concrete syntax, in one or two steps.
 The debugging is too hard, especially when Lark throws exceptions 
 that are not easy to trace back to your source code.  That way 
 madness lies. 
@@ -513,10 +516,10 @@ non-terminals that you have not yet defined.   You can then fit
 pieces together.
 
 As you incrementally build up your parser and transformer, you 
-should also be building up example source texts to test them on.  
-Keep them simple!  Your primary consideration should be ease of 
-debugging, so at least one of your examples should be as simple as 
-possible while still exercising the parts of the grammar you are 
+should also be building up example source texts to test them on.
+Keep them simple!  Your primary consideration should be ease of
+debugging, so at least one of your examples should be as simple as
+possible while still exercising the parts of the grammar you are
 working on.
 
 If you get stuck or confused, break it down farther, and simplify 
