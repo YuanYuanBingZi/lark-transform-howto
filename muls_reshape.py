@@ -1,11 +1,5 @@
-"""Reshaping the concrete syntax or parse tree of a sequence of sums
-into the desired abstract syntax tree.
 
-Typically I would put this in the AST source file, but have separated it out
-for this example so there is no confusion about the parts.
-"""
-
-import sums_ast
+import muls_ast
 import lark
 
 import logging
@@ -26,7 +20,7 @@ class SumsTransformer(lark.Transformer):
         """Terminal symbol, a regular expression in the grammar"""
         log.debug(f"Processing token NUMBER with {data}")
         val = int(data.value)
-        ast_node = sums_ast.Number(val)
+        ast_node = muls_ast.Number(val)
         log.debug(f"Processed token into value {ast_node}")
         return ast_node
 
@@ -43,26 +37,36 @@ class SumsTransformer(lark.Transformer):
         # Note the token '+' is not one of the children;
         # that's why I told Lark to represent the node as 'plus'
         left, right = children
-        return sums_ast.Plus(left, right)
+        return muls_ast.Plus(left, right)
 
     def minus(self, children):
         log.debug(f"Processing 'minus' with {children}")
         # See 'plus' above.  Same deal.
         left, right = children
-        return sums_ast.Minus(left, right)
+        return muls_ast.Minus(left, right)
+    
+    def mul(self, children):
+        log.debug(f"Processing 'mul' with {children}")
+        left, right = children
+        return muls_ast.Mul(left, right)
 
-    def sum(self, children):
+    def divide(self, children):
+        log.debug(f"Processing 'divide' with {children}")
+        left, right = children
+        return muls_ast.Divide(left, right)
+
+    def expr(self, children):
         """Note we have renamed the recursive cases to 'plus' and 'minus',
         so this method will be called only for a 'sum' node representing
         the base case, sum -> number.
         """
-        log.debug(f"Processing sum base case {children}")
+        log.debug(f"Processing expr base case {children}")
         return children[0]
 
     def seq_one(self, children):
         """This will always be the first reduction to seq"""
         log.debug(f"Processing sequence (base case) with {children}")
-        seq = sums_ast.Seq()
+        seq = muls_ast.Seq()
         seq.append(children[0])
         log.debug(f"Sequence is now {seq}")
         return seq
@@ -72,6 +76,6 @@ class SumsTransformer(lark.Transformer):
         the base case has been reduced.
         """
         log.debug(f"Processing seq (recursive case) with {children}")
-        seq, sum = children
-        seq.append(sum)
+        seq, expr = children
+        seq.append(expr)
         return seq
