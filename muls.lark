@@ -1,0 +1,26 @@
+
+?start: seq  // The ? means "don't actually build a node for 'start'"
+
+// Sequence of one or more sums, expressed with left recursion
+seq: seq expr ";" -> seq_more
+    | expr ";"    -> seq_one
+
+//Handling the precedence and associativity by defining the levels of operation
+expr: expr "+" term -> plus
+    | expr "-" term -> minus
+    | term
+
+term: term "*" factor -> multiply
+    | term "/" factor -> divide
+    | factor
+
+
+// The real BNF portion of the grammar is all above.  What follows
+// is the lexical structure, which is matched in a completely different
+// way.  We'll begin by importing a standard Lark pattern for ignoring whitespace
+%import common.WS
+%ignore WS
+
+// Then we'll write a pattern for decimal integers
+factor: NUMBER
+NUMBER: /[0-9]+/
