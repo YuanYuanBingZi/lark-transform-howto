@@ -7,7 +7,7 @@ The new running and test example is on -> main_muls.py and example_muls.txt
 
 This modification helps me better understand how Lark transfer the language based on the grammar.
 I got some errors first as the syntax tree is really weird, "DEBUG:muls_reshape:Processing 'multply' with [Tree(Token('RULE', 'term'), [5]), 3]
-3", and I add the term function to the ast file and fix this bug.
+3", and I add the term function to the reshape file and fix this bug.
 
 # Parsing and abstract syntax with Lark
 
