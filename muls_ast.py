@@ -25,7 +25,7 @@ class Term(Expr):
 
 # A sum is either an integer or a binary operation
 
-class Number(Term):
+class Factor(Term):
     """Typically some tokens define leaves of the AST.  Leaves of a Sum
     are integer literals.
     """
@@ -62,7 +62,7 @@ class Minus(BinOp):
     def __init__(self, left: ASTNode, right: ASTNode):
         super().__init__('-', left, right)
 
-class Mul(BinOp):
+class Multiply(BinOp):
     def __init__(self, left: Expr, right: Expr):
         super().__init__('*', left, right)
 
@@ -97,8 +97,8 @@ def smoke_test_sums():
     seq.append(sum1)
     seq.append(sum2)
     print(seq)
-    mul1 = Minus(Plus(1, Mul(1, 2)), 1)
-    mul2 = Divide(Mul(1, Plus(1, 2)), Plus(1,2))
+    mul1 = Minus(Plus(1, Multiply(1, 2)), 1)
+    mul2 = Divide(Multiply(1, Plus(1, 2)), Plus(1,2))
     seq.append(mul1)
     seq.append(mul2)
     print(seq)

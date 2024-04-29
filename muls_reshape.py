@@ -20,16 +20,25 @@ class SumsTransformer(lark.Transformer):
         """Terminal symbol, a regular expression in the grammar"""
         log.debug(f"Processing token NUMBER with {data}")
         val = int(data.value)
-        ast_node = muls_ast.Number(val)
+        ast_node = muls_ast.Factor(val)
         log.debug(f"Processed token into value {ast_node}")
         return ast_node
+    
 
-    def number(self, children):
+    def factor(self, children):
         """number, unlike NUMBER, is a non-terminal symbol.
         It has a single child, which will have been transformed
         by the NUMBER method above.
         """
         log.debug(f"Processing 'number' with {children}")
+        return children[0]
+    
+    def expr(self, children):
+        log.debug(f"Processing'term' with {children}")
+        return children[0]
+    
+    def term(self, children):
+        log.debug(f"Processing 'term' with {children}")
         return children[0]
 
     def plus(self, children):
@@ -45,23 +54,15 @@ class SumsTransformer(lark.Transformer):
         left, right = children
         return muls_ast.Minus(left, right)
     
-    def mul(self, children):
-        log.debug(f"Processing 'mul' with {children}")
+    def multiply(self, children):
+        log.debug(f"Processing 'multiply' with {children}")
         left, right = children
-        return muls_ast.Mul(left, right)
+        return muls_ast.Multiply(left, right)
 
     def divide(self, children):
         log.debug(f"Processing 'divide' with {children}")
         left, right = children
         return muls_ast.Divide(left, right)
-
-    def expr(self, children):
-        """Note we have renamed the recursive cases to 'plus' and 'minus',
-        so this method will be called only for a 'sum' node representing
-        the base case, sum -> number.
-        """
-        log.debug(f"Processing expr base case {children}")
-        return children[0]
 
     def seq_one(self, children):
         """This will always be the first reduction to seq"""
@@ -70,6 +71,7 @@ class SumsTransformer(lark.Transformer):
         seq.append(children[0])
         log.debug(f"Sequence is now {seq}")
         return seq
+        
 
     def seq_more(self, children):
         """This left-recursive production will always be reduced AFTER

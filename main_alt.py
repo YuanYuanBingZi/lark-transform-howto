@@ -23,7 +23,7 @@ def main():
     # Step 3: Transform the concrete syntax tree into
     # an abstract tree, starting from the leaves and working
     # up.
-   transformer = sums_alt_reshape.SumsTransformer()
+    transformer = sums_alt_reshape.SumsTransformer()
     ast = transformer.transform(concrete)
     print(ast)
     print(f"as {repr(ast)}")
