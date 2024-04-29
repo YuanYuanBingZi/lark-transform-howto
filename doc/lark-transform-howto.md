@@ -1,3 +1,14 @@
+# Newly Add-on by YuanYuanBingZi
+This small smaple of Lark has been extended to include operations: plus, minus, multiply and divide.
+The new concrete grammer is on -> muls.lark
+The new python file of abstract syntax tree is on -> muls_ast.py and muls_reshape.py
+The new running and test example is on -> main_muls.py and example_muls.txt
+
+
+This modification helps me better understand how Lark transfer the language based on the grammar.
+I got some errors first as the syntax tree is really weird, "DEBUG:muls_reshape:Processing 'multply' with [Tree(Token('RULE', 'term'), [5]), 3]
+3", and I add the term function to the ast file and fix this bug.
+
 # Parsing and abstract syntax with Lark
 
 Lark is a very nice parser generator with inadequate 
